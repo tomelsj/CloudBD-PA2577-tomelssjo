@@ -1,0 +1,34 @@
+Vagrant.configure('2') do |config|
+    config.vm.hostname = 'vagrant-test'
+    config.vm.synced_folder '.', '/vagrant', type: 'rsync'
+
+    config.vm.provider 'virtualbox' do |v, override|
+        override.vm.box = 'bento/ubuntu-22.04'
+    end
+
+    config.vm.provider :digital_ocean do |provider, override|
+        override.vm.allowed_synced_folder_types = :rsync
+        override.ssh.private_key_path = '~/.ssh/vagrant'
+        override.vm.box = 'digital_ocean'
+        override.vm.box_url = 'https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box'
+
+        provider.token = ''
+        provider.image = 'ubuntu-22-04-x64'
+        provider.region = 'nyc1'
+        provider.size = 's-1vcpu-1gb'
+        provider.setup = false
+    end
+
+    config.puppet_install.puppet_version = :latest 
+    config.vm.provision :puppet do |puppet|
+        puppet.manifests_path = 'enviroments/test/manifests'
+    end
+
+    config.vm.define 'appserver' do |node|
+        node.vm.hostname = "appserver"
+    end
+
+    config.vm.define 'dbserver' do |node|
+        node.vm.hostname = "dbserver"
+    end
+end
